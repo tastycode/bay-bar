@@ -2,13 +2,19 @@ class AppDelegate
   def applicationDidFinishLaunching(notification)
     buildStatus
     buildMenuItems
+    if tag = App::Persistence['selectedStop']
+      @selectedStop = Stop.new(route: {"tag" => tag})
+      getPredictions
+    else
+      @selectedStop = nil
+    end
   end
 
   def buildStatus
     @statusBar = NSStatusBar.systemStatusBar
     @item = @statusBar.statusItemWithLength(NSVariableStatusItemLength)
     @item.retain
-    @item.setTitle("Menubar App")
+    @item.setTitle("Bay Bar - Muni")
     @item.setHighlightMode(true)
     @item.setMenu(menu)
   end
@@ -19,10 +25,6 @@ class AppDelegate
     @menu = NSMenu.new
     @menu.initWithTitle 'Menubar App'
 
-    #mi = NSMenuItem.new
-    #mi.title = 'Hello!'
-    #mi.action = 'sayHello:'
-    #menu.addItem mi
   end
 
   def buildMenuItems
@@ -33,29 +35,35 @@ class AppDelegate
       end
 
       @routes.each do |route|
-        menu.addItem(NSMenuItem.new.tap do |i|
-          i.title = route.title
-          subMenu = NSMenu.new
-          route.stops do |stopIndex|
-            stopGroups = stopIndex.values.group_by(&:title)
-            stopGroups.each do |title, stops|
-              item = NSMenuItem.new.tap do |gi|
-                gi.title = title
-                groupSubmenu = NSMenu.new
-                stops.each do |stop|
-                  groupSubmenu.addItemWithTitle(stop.menuTitle, action: nil, keyEquivalent: "") if stop.direction
-                end
-                gi.submenu = groupSubmenu
-              end
-              subMenu.addItem(item)
-            end
-
-          end
-          i.submenu = subMenu
-        end)
+        menu.addItem RouteMenu.new(route)
       end
     end
-    
+  end
+
+  def selectedStop(stop)
+    @selectedStop = stop
+    App::Persistence['selectedStop-route-tag'] = @selectedStop.route["tag"]
+    @item.title = stop.menuTitle
+    @timer.invalidate if @timer
+    getPredictions
+    @timer = NSTimer.scheduledTimerWithTimeInterval(45, target:self, selector:'getPredictions', userInfo:nil, repeats:true)
+  end
+
+  def getPredictions
+    BW::HTTP.get("http://bay-bar.herokuapp.com/?command=predictions&a=sf-muni&stopId=#{@selectedStop.stopId}&routeTag=#{@selectedStop.route["tag"]}") do |response|
+      result = BW::JSON.parse(response.body)
+      predictions = if result["body"]["predictions"]["direction"].kind_of? Array
+        rawPrediction = result["body"]["predictions"]["direction"].first do |direction|
+          direction["title"] == @seleectedStop.direction["title"]
+        end["prediction"]
+        rawPrediction.kind_of?(Array) ? rawPrediction : [rawPrediction]
+      else
+        result["body"]["predictions"]["direction"]["prediction"]
+      end
+      times = predictions.map {|x| x["minutes"]}[0..2].join(", ")
+      @item.title = "#{@selectedStop.menuTitle} #{times}"
+    end
+
   end
 
 end

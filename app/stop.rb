@@ -24,7 +24,7 @@ class Stop
   end
 
   def topToolTipTitle
-    "#{directionName} #{title}"
+    "#{direction['title']} #{title}"
   end
 
   def routeTag
@@ -40,6 +40,6 @@ class Stop
   end
 
   def toolTipTitle
-    "#{directionName} - #{title}"
+    "#{direction["title"]} - #{title}"
   end
 end

@@ -26,6 +26,9 @@ class AppDelegate
   end
 
   def buildMenuItems
+    menu.addItemWithTitle("Quit Bay Bar", action: 'terminate:', keyEquivalent: 'q')
+    menu.addItem(NSMenuItem.separatorItem)
+
     BW::HTTP.get("http://bay-bar.herokuapp.com/?command=routeList&a=sf-muni") do |response|
       result = BW::JSON.parse(response.body)
       @routes = result["body"]["route"].map do |routeData|
@@ -42,14 +45,16 @@ class AppDelegate
     @selectedStop = stop
     App::Persistence['selectedStop-route-tag'] = @selectedStop.route["tag"]
     setTitleMetadata("...")
+    @countdownTimer.invalidate if @countdownTimer
     @timer.invalidate if @timer
     getPredictions
     @timer = NSTimer.scheduledTimerWithTimeInterval(45, target:self, selector:'getPredictions', userInfo:nil, repeats:true)
   end
 
-  def setTitleMetadata(metadata)
+  def setTitleMetadata(metadata, toolTipOverride = nil)
     @item.title = "🚌 #{@selectedStop.topTitle} - #{metadata}"
-    @item.toolTip = "🚌 #{@selectedStop.topToolTipTitle} - #{metadata}"
+    toolTipMeta = toolTipOverride || metadata
+    @item.toolTip = "🚌 #{@selectedStop.topToolTipTitle} - #{toolTipMeta}"
   end
 
   def getPredictions
@@ -63,10 +68,34 @@ class AppDelegate
       else
         result["body"]["predictions"]["direction"]["prediction"]
       end
-      times = predictions.map {|x| x["minutes"]}[0..2].join(", ")
-      setTitleMetadata(times)
+      setNextPrediction(predictions.first)
+      @times = predictions.map {|x| x["minutes"]}[0..2].join(", ")
     end
 
+  end
+
+  def setNextPrediction(prediction)
+    @seconds = prediction["seconds"].to_i
+    @countdownTimer.invalidate if @countdownTimer
+    @countdownTimer = NSTimer.scheduledTimerWithTimeInterval(1.0, target:self, selector:'countdown', userInfo:nil, repeats:true)
+  end
+
+  def countdown
+    @seconds -= 1
+    if @seconds < 0
+      setTitleMetadata("A")
+    else
+      label = if @seconds >= 3600
+          Time.at(@seconds).strftime("%H:%M:%S")
+      else
+          Time.at(@seconds).strftime('%M:%S')
+      end
+      setTitleMetadata(label, @times)
+    end
+  end
+
+  def titleForSeconds(seconds)
+    @second
   end
 
 end

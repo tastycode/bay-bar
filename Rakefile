@@ -12,6 +12,6 @@ Motion::Project::App.setup do |app|
   # Use `rake config' to see complete project settings.
   app.name = 'Bay Bar'
   app.icon = 'icons.icns'
-  app.info_plist["CFBundleIconFile"] = "icon.icns"
+  app.identifier = "com.illuminatedengine.bay-bar"
   app.info_plist['NSUIElement'] = 1
 end

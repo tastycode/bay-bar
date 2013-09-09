@@ -15,3 +15,9 @@ changed a few things:
 * Additional info available in tooltip
 
 [Download Here](https://www.dropbox.com/s/oszgsl0jfogbjau/Bay%20Bar.dmg)
+
+# Usage
+
+1. Download/Install the app
+2. After launching, wait about 30 seconds for all the route data to get
+   loaded.

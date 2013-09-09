@@ -21,29 +21,25 @@ class Route
         puts "Response not okay"
       end
     end
-
-
   end
 
-def buildStops
-  return @stops if @stops
-  @stops = []
-  @json["body"]["route"]["direction"].each do |direction|
-    tags = direction["stop"].collect {|s| s["tag"]}
-    tags.each do |tag|
-      currentStop = @indexedStops[tag]
-      currentStop["direction"] = {
-        "name" => direction["name"],
-        "title" => direction["title"]
-      }
-      currentStop["forRoute"] = {
-        "tag" => @tag,
-        "title" => @title
-      }
-      @stops << Stop.new(currentStop)
+  def buildStops
+    return @stops if @stops
+    @stops = []
+    @json["body"]["route"]["direction"].each do |direction|
+      tags = direction["stop"].collect {|s| s["tag"]}
+      tags.each do |tag|
+        currentStop = @indexedStops[tag]
+        currentStop["direction"] = {
+          "name" => direction["name"],
+          "title" => direction["title"]
+        }
+        currentStop["forRoute"] = {
+          "tag" => @tag,
+          "title" => @title
+        }
+        @stops << Stop.new(currentStop)
+      end
     end
-  end
-end
-
-  
+  end  
 end

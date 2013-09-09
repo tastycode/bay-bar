@@ -14,7 +14,7 @@ class AppDelegate
     @statusBar = NSStatusBar.systemStatusBar
     @item = @statusBar.statusItemWithLength(NSVariableStatusItemLength)
     @item.retain
-    @item.setTitle("Bay Bar - Muni")
+    @item.setTitle("🚌 Bay Bar - Muni")
     @item.setHighlightMode(true)
     @item.setMenu(menu)
   end
@@ -23,8 +23,6 @@ class AppDelegate
     return @menu if @menu
 
     @menu = NSMenu.new
-    @menu.initWithTitle 'Menubar App'
-
   end
 
   def buildMenuItems
@@ -43,10 +41,15 @@ class AppDelegate
   def selectedStop(stop)
     @selectedStop = stop
     App::Persistence['selectedStop-route-tag'] = @selectedStop.route["tag"]
-    @item.title = stop.menuTitle
+    setTitleMetadata("...")
     @timer.invalidate if @timer
     getPredictions
     @timer = NSTimer.scheduledTimerWithTimeInterval(45, target:self, selector:'getPredictions', userInfo:nil, repeats:true)
+  end
+
+  def setTitleMetadata(metadata)
+    @item.title = "🚌 #{@selectedStop.topTitle} - #{metadata}"
+    @item.toolTip = "🚌 #{@selectedStop.topToolTipTitle} - #{metadata}"
   end
 
   def getPredictions
@@ -61,7 +64,7 @@ class AppDelegate
         result["body"]["predictions"]["direction"]["prediction"]
       end
       times = predictions.map {|x| x["minutes"]}[0..2].join(", ")
-      @item.title = "#{@selectedStop.menuTitle} #{times}"
+      setTitleMetadata(times)
     end
 
   end

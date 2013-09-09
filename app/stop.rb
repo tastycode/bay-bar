@@ -1,5 +1,5 @@
 class Stop
-  attr_accessor :title, :direction, :lat, :lon, :tag, :stopId
+  attr_accessor :title, :direction, :lat, :lon, :tag, :stopId, :route
 
   def initialize(stopData)
     @lat = stopData["lat"]
@@ -19,11 +19,27 @@ class Stop
     "#{shortDirection} - #{title}"
   end
 
+  def topTitle
+    routeTag
+  end
+
+  def topToolTipTitle
+    "#{directionName} #{title}"
+  end
+
+  def routeTag
+    route["tag"]
+  end
+
+  def directionName
+    direction["name"]
+  end
+
   def shortDirection
     direction["name"][/^(?:out|in)/i].capitalize
   end
 
   def toolTipTitle
-    "#{direction["name"]} - #{title}"
+    "#{directionName} - #{title}"
   end
 end

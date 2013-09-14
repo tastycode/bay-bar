@@ -14,7 +14,8 @@ changed a few things:
 * Added a countdown timer for the closest coming bus for this stop
 * Additional info available in tooltip
 
-[Download Here](https://www.dropbox.com/s/oszgsl0jfogbjau/Bay%20Bar.dmg)
+[Download
+Here](https://github.com/tastycode/bay-bar/releases/download/0.1/Bay.Bar.dmg)
 
 # Usage
 
